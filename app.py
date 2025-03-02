@@ -1,6 +1,5 @@
 import numpy as np
 import pickle
-import time
 import streamlit as st
 from PIL import Image
 
@@ -44,20 +43,14 @@ def main():
     ProductCD = st.sidebar.selectbox("Product Code", [0, 1, 2, 3, 4])
     DeviceType = st.sidebar.radio("Device Type", [1, 2])
     
-    safe_html = """<img src="https://media.giphy.com/media/g9582DNuQppxC/giphy.gif" style="width:698px;height:350px;">"""
-    danger_html = """<img src="https://media.giphy.com/media/8ymvg6pl1Lzy0/giphy.gif" style="width:698px;height:350px;">"""
-    
     if st.button("Predict Fraudulent Transaction"):
         output = predict_fraud(card1, card2, card4, card6, addr1, addr2, TransactionAmt, P_emaildomain, ProductCD, DeviceType)
         final_output = output * 100
         st.subheader(f'Probability Score of Fraud: {final_output}%')
         
         if final_output > 75.0:
-            st.markdown(danger_html, unsafe_allow_html=True)
             st.error("**Warning! Transaction is Fraudulent**")
         else:
-            st.balloons()
-            st.markdown(safe_html, unsafe_allow_html=True)
             st.success("**Transaction is Legitimate**")
     
 if __name__ == '__main__':
