@@ -1,59 +1,53 @@
-import numpy as np
-import pickle
 import streamlit as st
-from PIL import Image
+import pickle
+import numpy as np
 
 # Load the trained model
-loaded_model = pickle.load(open('final_model.sav', 'rb'))
+model = pickle.load(open('final_model.sav', 'rb'))
 
-# Prediction function
-@st.cache_data()
-def predict_fraud(card1, card2, card4, card6, addr1, addr2, TransactionAmt, P_emaildomain, ProductCD, DeviceType):
-    input_data = np.array([[card1, card2, card4, card6, addr1, addr2, TransactionAmt, P_emaildomain, ProductCD, DeviceType]])
-    prediction = loaded_model.predict_proba(input_data)
-    fraud_probability = prediction[0][1]  # Assuming index 1 corresponds to fraud probability
-    return float(fraud_probability)
+st.title("Financial Transaction Fraud Prediction System")
 
-# Main function
-def main():
-    st.markdown(
-        """
-        <div style="background-color:#000000; padding:10px">
-        <h1 style="color:white; text-align:center;">Financial Transaction Fraud Prediction ML Web App 💰</h1>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+# Sidebar for transaction input details
+st.sidebar.header("Enter Transaction Details")
+
+# User input fields
+TransactionAmt = st.sidebar.number_input("Transaction Amount (USD)", min_value=0.0, step=0.01)
+ProductCD = st.sidebar.selectbox("Product Code", ['A', 'B', 'C', 'D', 'E'])
+card1 = st.sidebar.number_input("Payment Card 1", min_value=0, step=1)
+card2 = st.sidebar.number_input("Payment Card 2", min_value=0, step=1)
+card3 = st.sidebar.number_input("Payment Card 3", min_value=0, step=1)
+card4 = st.sidebar.selectbox("Payment Card Type", [1, 2, 3, 4])
+card5 = st.sidebar.number_input("Payment Card 5", min_value=0, step=1)
+card6 = st.sidebar.selectbox("Payment Card Category", [1, 2, 3, 4])
+addr1 = st.sidebar.number_input("Billing Address 1", min_value=0, step=1)
+addr2 = st.sidebar.number_input("Billing Address 2", min_value=0, step=1)
+dist1 = st.sidebar.number_input("Distance 1", min_value=0, step=1)
+dist2 = st.sidebar.number_input("Distance 2", min_value=0, step=1)
+P_emaildomain = st.sidebar.text_input("Purchaser Email Domain")
+R_emaildomain = st.sidebar.text_input("Recipient Email Domain")
+
+# C variables
+C_features = [st.sidebar.number_input(f"C{i}", min_value=0, step=1) for i in range(1, 15)]
+
+# D variables
+D_features = [st.sidebar.number_input(f"D{i}", min_value=0, step=1) for i in range(1, 15)]
+
+# Feature array creation
+features = [
+    TransactionAmt, ord(ProductCD), card1, card2, card3, card4, card5, card6,
+    addr1, addr2, dist1, dist2, ord(P_emaildomain[0]) if P_emaildomain else 0,
+    ord(R_emaildomain[0]) if R_emaildomain else 0
+] + C_features + D_features
+
+# Convert to NumPy array and reshape for model prediction
+features = np.array(features).reshape(1, -1)
+
+if st.sidebar.button("Predict Fraudulent Transaction"):
+    probability = model.predict_proba(features)[0][1] * 100
     
-    image = Image.open('home_banner.PNG')
-    st.image(image, caption='Impacting Finance & Banking with AI')
+    st.subheader(f"Probability Score of Fraud: {probability:.2f}%")
     
-    # Sidebar Inputs
-    st.sidebar.title("Financial Transaction Fraud Prediction System 🕵️")
-    st.sidebar.subheader("Enter Transaction Details")
-    
-    TransactionAmt = st.sidebar.number_input("Transaction Amount (USD)", min_value=0.0, max_value=20000.0, step=1.0)
-    card1 = st.sidebar.number_input("Payment Card 1", min_value=0, max_value=20000, step=1)
-    card2 = st.sidebar.number_input("Payment Card 2", min_value=0, max_value=20000, step=1)
-    card4 = st.sidebar.radio("Payment Card Category", [1, 2, 3, 4])
-    card6 = st.sidebar.radio("Payment Card Type", [1, 2])
-    addr1 = st.sidebar.slider("Billing Zip Code", min_value=0, max_value=500, step=1)
-    addr2 = st.sidebar.slider("Billing Country Code", min_value=0, max_value=100, step=1)
-    P_emaildomain = st.sidebar.selectbox("Purchaser Email Domain", [0, 1, 2, 3, 4])
-    ProductCD = st.sidebar.selectbox("Product Code", [0, 1, 2, 3, 4])
-    DeviceType = st.sidebar.radio("Device Type", [1, 2])
-    
-    if st.button("Predict Fraudulent Transaction"):
-        fraud_score = predict_fraud(card1, card2, card4, card6, addr1, addr2, TransactionAmt, P_emaildomain, ProductCD, DeviceType)
-        fraud_percentage = fraud_score * 100
-        st.subheader(f'Probability Score of Fraud: {fraud_percentage:.2f}%')
-        
-        if fraud_percentage > 75.0:
-            st.error("**Warning! High Probability of Fraudulent Transaction**")
-        elif 50.0 <= fraud_percentage <= 75.0:
-            st.warning("**Caution! This transaction is suspicious**")
-        else:
-            st.success("**Transaction appears legitimate**")
-    
-if __name__ == '__main__':
-    main()
+    if probability > 50:
+        st.error("🚨 Transaction appears FRAUDULENT!")
+    else:
+        st.success("✅ Transaction appears LEGITIMATE")
