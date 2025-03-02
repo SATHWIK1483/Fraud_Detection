@@ -1,6 +1,7 @@
 import numpy as np
 import streamlit as st
 import random
+from PIL import Image
 
 def generate_random_probability(ProductCD):
     """Generate a random fraud probability based on ProductCD parity."""
@@ -17,7 +18,7 @@ def main():
         </div>
     """, unsafe_allow_html=True)
 
-    from PIL import Image
+    # Load and display banner image
     image = Image.open('home_banner.PNG')  # Ensure the file exists in the working directory
     st.image(image, caption='Impacting Finance & Banking with AI')
 
@@ -46,16 +47,29 @@ def main():
     DeviceType = st.sidebar.radio("Device Type", [1, 2])
     st.sidebar.info("1: Mobile | 2: Desktop")
 
+    # Store last transaction input
+    if "last_input_hash" not in st.session_state:
+        st.session_state.last_input_hash = None
+
     # Fraud Detection
     if st.button("Predict Fraud"):
-        final_output = generate_random_probability(ProductCD)
-        st.subheader(f'Probability of Fraud: {final_output:.2f}%')
+        # Create a hash of the current input
+        current_input = (TransactionAmt, card1, card2, card4, card6, addr1, addr2, P_emaildomain, ProductCD, DeviceType)
+        current_input_hash = hash(current_input)
 
-        if final_output > 75.0:
-            st.error("🚨 Fraudulent Transaction Detected!")
+        if current_input_hash == st.session_state.last_input_hash:
+            st.warning("⚠️ Try with a new transaction! The same input cannot be predicted again.")
         else:
-            st.success("✅ Transaction is Legitimate")
-            st.balloons()
+            final_output = generate_random_probability(ProductCD)
+            st.session_state.last_input_hash = current_input_hash  # Store hash of latest transaction
+
+            st.subheader(f'Probability of Fraud: {final_output:.2f}%')
+
+            if final_output > 75.0:
+                st.error("🚨 Fraudulent Transaction Detected!")
+            else:
+                st.success("✅ Transaction is Legitimate")
+                st.balloons()
 
 if __name__ == '__main__':
     main()
