@@ -13,66 +13,75 @@ def generate_random_probability(ProductCD):
 
 # Streamlit App
 def main():
-    # Streamlit UI Header
+    # Custom Styling
     st.markdown("""
         <style>
-            .main-title { text-align: center; color: white; padding: 10px; font-size: 26px; }
-            .fraud-warning { color: red; font-size: 22px; font-weight: bold; text-align: center; }
-            .legit-success { color: green; font-size: 22px; font-weight: bold; text-align: center; }
-            .custom-button { background-color: #FF4B4B; color: white; font-size: 20px; width: 100%; padding: 10px; border-radius: 8px; border: none; cursor: pointer; }
-            .custom-button:hover { background-color: #FF1E1E; }
+            body { font-family: Arial, sans-serif; }
+            .header { text-align: center; color: white; padding: 15px; font-size: 28px; font-weight: bold; }
+            .container { background-color: #f8f9fa; padding: 20px; border-radius: 10px; }
+            .fraud-warning { color: #d9534f; font-size: 20px; font-weight: bold; text-align: center; }
+            .legit-success { color: #5cb85c; font-size: 20px; font-weight: bold; text-align: center; }
+            .predict-btn { background-color: #007bff; color: white; font-size: 18px; width: 100%; padding: 12px; border-radius: 8px; border: none; cursor: pointer; }
+            .predict-btn:hover { background-color: #0056b3; }
         </style>
-        <div style="background-color:#000000;padding:10px">
-            <h1 class="main-title">Financial Transaction Fraud Detection 💰</h1>
+        <div style="background-color:#212529;padding:10px">
+            <h1 class="header">Financial Transaction Fraud Detection</h1>
         </div>
     """, unsafe_allow_html=True)
 
     # Load and display banner image
     image = Image.open('home_banner.PNG')
-    st.image(image, caption='Impacting Finance & Banking with AI')
+    st.image(image, caption="AI-Powered Fraud Detection in Finance & Banking", use_column_width=True)
 
     # Sidebar Inputs
-    st.sidebar.title("🔍 Enter Transaction Details")
+    st.sidebar.title("Transaction Details")
     
-    TransactionAmt = st.sidebar.number_input("💵 Transaction Amount (USD)", min_value=0.0, max_value=20000.0, step=0.01)
-    card1 = st.sidebar.number_input("💳 Card 1", min_value=0, max_value=20000, step=1)
-    card2 = st.sidebar.number_input("💳 Card 2", min_value=0, max_value=20000, step=1)
+    TransactionAmt = st.sidebar.number_input("Transaction Amount (USD)", min_value=0.0, max_value=20000.0, step=0.01)
+    card1 = st.sidebar.number_input("Card 1", min_value=0, max_value=20000, step=1)
+    card2 = st.sidebar.number_input("Card 2", min_value=0, max_value=20000, step=1)
 
-    card4 = st.sidebar.radio("🏦 Payment Card Category", [1, 2, 3, 4])
-    st.sidebar.info("1: Discover | 2: Mastercard | 3: Amex | 4: Visa")
+    card4 = st.sidebar.radio("Payment Card Category", [1, 2, 3, 4])
+    st.sidebar.caption("1: Discover | 2: Mastercard | 3: Amex | 4: Visa")
 
-    card6 = st.sidebar.radio("💰 Payment Card Type", [1, 2])
-    st.sidebar.info("1: Credit | 2: Debit")
+    card6 = st.sidebar.radio("Payment Card Type", [1, 2])
+    st.sidebar.caption("1: Credit | 2: Debit")
 
-    addr1 = st.sidebar.slider("📍 Address 1", min_value=0, max_value=500, step=1)
-    addr2 = st.sidebar.slider("🌍 Address 2", min_value=0, max_value=100, step=1)
+    addr1 = st.sidebar.slider("Billing Address 1", min_value=0, max_value=500, step=1)
+    addr2 = st.sidebar.slider("Billing Address 2", min_value=0, max_value=100, step=1)
 
-    P_emaildomain = st.sidebar.selectbox("📧 Purchaser Email Domain", [0, 1, 2, 3, 4])
-    st.sidebar.info("0: Gmail | 1: Outlook | 2: Mail.com | 3: Others | 4: Yahoo")
+    P_emaildomain = st.sidebar.selectbox("Purchaser Email Domain", [0, 1, 2, 3, 4])
+    st.sidebar.caption("0: Gmail | 1: Outlook | 2: Mail.com | 3: Others | 4: Yahoo")
 
-    ProductCD = st.sidebar.selectbox("📦 Product Code", [0, 1, 2, 3, 4])
-    st.sidebar.info("0: C | 1: H | 2: R | 3: S | 4: W")
+    ProductCD = st.sidebar.selectbox("Product Code", [0, 1, 2, 3, 4])
+    st.sidebar.caption("0: C | 1: H | 2: R | 3: S | 4: W")
 
-    DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
-    st.sidebar.info("1: Mobile | 2: Desktop")
+    DeviceType = st.sidebar.radio("Device Type", [1, 2])
+    st.sidebar.caption("1: Mobile | 2: Desktop")
 
     # Store last transaction input
     if "last_input_hash" not in st.session_state:
         st.session_state.last_input_hash = None
 
-    # Show live transaction summary
-    st.markdown("### 📝 Transaction Summary")
-    st.write(f"💵 **Transaction Amount:** ${TransactionAmt:.2f}")
-    st.write(f"💳 **Card1:** {card1} | **Card2:** {card2}")
-    st.write(f"🏦 **Payment Card:** {card4} | **Type:** {card6}")
-    st.write(f"📧 **Email Domain:** {P_emaildomain} | 📦 **Product Code:** {ProductCD}")
-    st.write(f"📍 **Billing Address:** {addr1}, {addr2}")
-    st.write(f"📱 **Device Type:** {'Mobile' if DeviceType == 1 else 'Desktop'}")
+    # Transaction Summary
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.subheader("Transaction Summary")
+    st.markdown(
+        f"""
+        <div class="container">
+            <b>Transaction Amount:</b> ${TransactionAmt:.2f} <br>
+            <b>Card Details:</b> Card 1 - {card1} | Card 2 - {card2} <br>
+            <b>Payment Method:</b> {'Credit' if card6 == 1 else 'Debit'} ({'Visa' if card4 == 4 else 'Other'}) <br>
+            <b>Email Domain:</b> {P_emaildomain} | <b>Product Code:</b> {ProductCD} <br>
+            <b>Billing Address:</b> {addr1}, {addr2} <br>
+            <b>Device Type:</b> {'Mobile' if DeviceType == 1 else 'Desktop'}
+        </div>
+        """, unsafe_allow_html=True
+    )
 
     # Fraud Detection
     st.markdown("<br>", unsafe_allow_html=True)  # Add spacing
 
-    if st.button("🔎 Predict Fraud", help="Click to check if the transaction is fraudulent."):
+    if st.button("Predict Fraud", help="Click to analyze the transaction for potential fraud.", key="predict_button"):
         # Create a hash of the current input
         current_input = (TransactionAmt, card1, card2, card4, card6, addr1, addr2, P_emaildomain, ProductCD, DeviceType)
         current_input_hash = hash(current_input)
@@ -83,23 +92,18 @@ def main():
             final_output = generate_random_probability(ProductCD)
             st.session_state.last_input_hash = current_input_hash  # Store hash of latest transaction
 
-            st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
+            st.subheader(f'Fraud Probability: {final_output:.2f}%')
 
-            # Enhanced fraud detection visualization
-            if final_output > 75.0:
-                st.markdown("<p class='fraud-warning'>🚨 Fraudulent Transaction Detected!</p>", unsafe_allow_html=True)
-                st.error("⚠️ High risk! This transaction might be fraudulent.")
-                st.markdown(
-                    '<img src="https://media.giphy.com/media/8ymvg6pl1Lzy0/giphy.gif" width="400">',
-                    unsafe_allow_html=True
-                )
+            # Fraud Probability Interpretation
+            if final_output > 85:
+                st.markdown("<p class='fraud-warning'>🚨 Critical Fraud Alert: High Risk</p>", unsafe_allow_html=True)
+                st.error("Immediate action required! This transaction is highly suspicious.")
+            elif 75 <= final_output <= 85:
+                st.markdown("<p class='fraud-warning'>⚠️ Potential Fraud Detected</p>", unsafe_allow_html=True)
+                st.warning("This transaction has a moderate fraud risk. Further verification recommended.")
             else:
-                st.markdown("<p class='legit-success'>✅ Transaction is Legitimate</p>", unsafe_allow_html=True)
-                st.success("🎉 Low risk! This transaction seems safe.")
-                st.markdown(
-                    '<img src="https://media.giphy.com/media/g9582DNuQppxC/giphy.gif" width="400">',
-                    unsafe_allow_html=True
-                )
+                st.markdown("<p class='legit-success'>✅ Transaction Verified: Low Risk</p>", unsafe_allow_html=True)
+                st.success("No fraud detected. This transaction appears to be legitimate.")
                 st.balloons()
 
 if __name__ == '__main__':
