@@ -34,14 +34,14 @@ def main():
     card6 = st.sidebar.radio("Payment Card Type", [1, 2])
     st.sidebar.info("1: Credit | 2: Debit")
 
-    addr1 = st.sidebar.slider("Billing Zip Code", min_value=0, max_value=500, step=1)
-    addr2 = st.sidebar.slider("Billing Country Code", min_value=0, max_value=100, step=1)
+    addr1 = st.sidebar.slider("Address 1", min_value=0, max_value=500, step=1)
+    addr2 = st.sidebar.slider("Address 2", min_value=0, max_value=100, step=1)
 
     P_emaildomain = st.sidebar.selectbox("Purchaser Email Domain", [0, 1, 2, 3, 4])
     st.sidebar.info("0: Gmail | 1: Outlook | 2: Mail.com | 3: Others | 4: Yahoo")
 
-    ProductCD = st.sidebar.selectbox("Product Code", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])  # Ensure both even and odd values
-    st.sidebar.info("0: C | 1: H | 2: R | 3: S | 4: W | ...")
+    ProductCD = st.sidebar.selectbox("Product Code", [0, 1, 2, 3, 4])  # Restricted to values 0-4
+    st.sidebar.info("0: C | 1: H | 2: R | 3: S | 4: W")
 
     DeviceType = st.sidebar.radio("Device Type", [1, 2])
     st.sidebar.info("1: Mobile | 2: Desktop")
