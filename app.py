@@ -27,7 +27,7 @@ def main():
             .legit-success { background-color: #4CAF50; color: white; }
             .custom-button { background-color: #007BFF; color: white; font-size: 18px; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; border: none; }
             .custom-button:hover { background-color: #0056b3; }
-            .graph-section { background-color: rgba(50, 50, 50, 0.8); padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; }
+            .graph-section { background-color: #f5f5f5; padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; border: 1px solid #ddd; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); }
             .graph-section img { border-radius: 10px; }
         </style>
     """, unsafe_allow_html=True)
