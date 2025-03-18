@@ -1,9 +1,9 @@
 import numpy as np
 import streamlit as st
 import random
-from PIL import Image
-import os
 import matplotlib.pyplot as plt
+import pandas as pd
+from PIL import Image
 
 # Function to generate a random fraud probability
 def generate_random_probability(ProductCD):
@@ -13,85 +13,65 @@ def generate_random_probability(ProductCD):
     else:
         return random.uniform(75, 100)  # Fraudulent
 
-# Streamlit App
+# Function to display fraud report
+def fraud_report(TransactionAmt, ProductCD, card1, card2, addr1, addr2, DeviceType):
+    st.title("📊 Fraud Analysis Report")
+    
+    # Explanation of fraud factors
+    st.markdown("### 🔎 Key Factors Contributing to Fraud")
+    st.write("- **Transaction Amount:** Higher transaction amounts tend to be riskier.")
+    st.write("- **Product Code:** Certain product categories have a higher fraud probability.")
+    st.write("- **Card Information:** Stolen cards may have different usage patterns.")
+    st.write("- **Address Mismatch:** Fraudsters often use inconsistent addresses.")
+    st.write("- **Device Type:** Transactions from unfamiliar devices may be flagged as fraud.")
+    
+    # Simulated feature importance graph
+    feature_importance = {"Transaction Amount": 30, "Product Code": 25, "Card Details": 20, "Address Mismatch": 15, "Device Type": 10}
+    
+    fig, ax = plt.subplots()
+    ax.bar(feature_importance.keys(), feature_importance.values(), color=['red', 'blue', 'green', 'orange', 'purple'])
+    ax.set_ylabel("Contribution (%)")
+    ax.set_title("Feature Importance in Fraud Detection")
+    st.pyplot(fig)
+
+    # Fraud probability prediction
+    fraud_probability = generate_random_probability(ProductCD)
+    st.subheader(f'🔢 Fraud Probability: {fraud_probability:.2f}%')
+
+    if fraud_probability > 75.0:
+        st.error("⚠️ High risk! This transaction is likely fraudulent.")
+    else:
+        st.success("✅ Low risk! This transaction seems safe.")
+
+# Streamlit Main App
 def main():
-    st.set_page_config(page_title="Financial Fraud Detection", layout="wide")
-    
-    # Sidebar navigation
-    page = st.sidebar.radio("Navigation", ["Home", "Fraud Report"])
-    
-    if page == "Home":
-        home_page()
-    elif page == "Fraud Report":
-        report_page()
-
-
-def home_page():
-    st.title("💰 Financial Transaction Fraud Detection")
-    
-    image = Image.open('home_banner.PNG')
-    st.image(image, caption="AI-Powered Fraud Detection", use_container_width=True)
-    
     st.sidebar.title("🔍 Transaction Details")
+    
     TransactionAmt = st.sidebar.number_input("💵 Transaction Amount (USD)", min_value=0.0, max_value=20000.0, step=0.01)
     card1 = st.sidebar.number_input("💳 Card 1", min_value=0, max_value=20000, step=1)
     card2 = st.sidebar.number_input("💳 Card 2", min_value=0, max_value=20000, step=1)
-    card4 = st.sidebar.radio("🏦 Payment Card Category", [1, 2, 3, 4])
-    card6 = st.sidebar.radio("💰 Payment Card Type", [1, 2])
     addr1 = st.sidebar.slider("📍 Address 1", min_value=0, max_value=500, step=1)
     addr2 = st.sidebar.slider("🌍 Address 2", min_value=0, max_value=100, step=1)
-    P_emaildomain = st.sidebar.selectbox("📧 Purchaser Email Domain", [0, 1, 2, 3, 4])
     ProductCD = st.sidebar.selectbox("📦 Product Code", [0, 1, 2, 3, 4])
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
-
+    
     st.markdown("### 📝 Transaction Summary")
     st.write(f"💵 **Transaction Amount:** ${TransactionAmt:.2f}")
     st.write(f"💳 **Card1:** {card1} | **Card2:** {card2}")
-    
+    st.write(f"📦 **Product Code:** {ProductCD}")
+    st.write(f"📍 **Billing Address:** {addr1}, {addr2}")
+    st.write(f"📱 **Device Type:** {'Mobile' if DeviceType == 1 else 'Desktop'}")
+
     if st.button("🔎 Predict Fraud"):
-        final_output = generate_random_probability(ProductCD)
-        st.session_state['fraud_probability'] = final_output  # Store result for report page
-        st.session_state['transaction_data'] = {
-            "TransactionAmt": TransactionAmt,
-            "Card1": card1,
-            "Card2": card2,
-            "ProductCD": ProductCD,
-            "Fraud Probability": final_output
-        }
-        
-        st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
-        
-        if final_output > 75.0:
-            st.error("🚨 Fraudulent Transaction Detected!")
+        fraud_probability = generate_random_probability(ProductCD)
+        st.subheader(f'🔢 Fraud Probability: {fraud_probability:.2f}%')
+        if fraud_probability > 75.0:
+            st.error("⚠️ High risk! This transaction might be fraudulent.")
         else:
-            st.success("✅ Legitimate Transaction")
-            st.balloons()
-        
-        st.markdown("## 📜 View Detailed Report")
-        if st.button("📊 Generate Report"):
-            st.switch_page("Fraud Report")
+            st.success("✅ Low risk! This transaction seems safe.")
 
-
-def report_page():
-    st.title("📊 Fraud Detection Report")
-    
-    if 'transaction_data' in st.session_state:
-        data = st.session_state['transaction_data']
-        
-        st.write("### Transaction Details")
-        st.json(data)
-        
-        if 'fraud_probability' in st.session_state:
-            fraud_score = st.session_state['fraud_probability']
-            
-            fig, ax = plt.subplots()
-            labels = ['Legit', 'Fraud']
-            values = [100 - fraud_score, fraud_score]
-            ax.pie(values, labels=labels, autopct='%1.1f%%', colors=['green', 'red'], startangle=140)
-            ax.set_title("Fraud Probability Analysis")
-            st.pyplot(fig)
-    else:
-        st.warning("No transaction data available. Please predict fraud first!")
+    if st.button("📄 Generate Fraud Report"):
+        fraud_report(TransactionAmt, ProductCD, card1, card2, addr1, addr2, DeviceType)
 
 if __name__ == '__main__':
     main()
