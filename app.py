@@ -1,7 +1,6 @@
 import numpy as np
 import streamlit as st
 import random
-import matplotlib.pyplot as plt
 from PIL import Image
 
 # Function to generate a random fraud probability
@@ -65,8 +64,6 @@ def main():
     # Store last transaction input
     if "last_input_hash" not in st.session_state:
         st.session_state.last_input_hash = None
-    if "prediction_made" not in st.session_state:
-        st.session_state.prediction_made = False  # Track if a prediction has been made
 
     # Transaction Summary
     st.markdown("### 📝 Transaction Summary")
@@ -90,7 +87,6 @@ def main():
         else:
             final_output = generate_random_probability(ProductCD)
             st.session_state.last_input_hash = current_input_hash  # Store hash of latest transaction
-            st.session_state.prediction_made = True  # Allow graph buttons to be shown
 
             st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
 
@@ -108,42 +104,6 @@ def main():
                 )
                 st.success("🎉 Low risk! This transaction seems safe.")
                 st.balloons()
-
-    # Show graphs only after at least one prediction
-    if st.session_state.prediction_made:
-        st.markdown("---")
-        st.subheader("📊 Additional Insights")
-
-        if st.button("📉 Show Fraud Probability Graph"):
-            # Generate a probability distribution graph
-            fig, ax = plt.subplots()
-            ax.set_facecolor("#2E2E2E")  # Dark background
-            plt.hist(np.random.uniform(40, 100, 1000), bins=30, color="#FFDD44", edgecolor="black")
-            plt.axvline(final_output, color="red", linestyle="dashed", linewidth=2)
-            plt.xlabel("Fraud Probability (%)", color="white")
-            plt.ylabel("Frequency", color="white")
-            plt.title("Fraud Probability Distribution", color="white")
-            ax.spines['bottom'].set_color('white')
-            ax.spines['left'].set_color('white')
-            ax.tick_params(axis='x', colors='white')
-            ax.tick_params(axis='y', colors='white')
-            st.pyplot(fig)
-
-        if st.button("📊 Show Transaction Amount Distribution"):
-            # Generate a transaction amount distribution graph
-            fig, ax = plt.subplots()
-            ax.set_facecolor("#2E2E2E")
-            transaction_data = np.random.normal(TransactionAmt, 100, 1000)
-            plt.hist(transaction_data, bins=30, color="#66CCFF", edgecolor="black")
-            plt.axvline(TransactionAmt, color="red", linestyle="dashed", linewidth=2)
-            plt.xlabel("Transaction Amount (USD)", color="white")
-            plt.ylabel("Frequency", color="white")
-            plt.title("Transaction Amount Distribution", color="white")
-            ax.spines['bottom'].set_color('white')
-            ax.spines['left'].set_color('white')
-            ax.tick_params(axis='x', colors='white')
-            ax.tick_params(axis='y', colors='white')
-            st.pyplot(fig)
 
 if __name__ == '__main__':
     main()
