@@ -23,6 +23,7 @@ def main():
             .legit-success { background-color: #4CAF50; color: white; }
             .custom-button { background-color: #007BFF; color: white; font-size: 18px; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; border: none; }
             .custom-button:hover { background-color: #0056b3; }
+            .graph-section { background-color: #1E1E1E; padding: 20px; border-radius: 10px; margin-top: 20px; }
         </style>
     """, unsafe_allow_html=True)
 
@@ -111,29 +112,38 @@ def main():
     # 📊 Fraud Analysis Section
     st.markdown("## 📊 Fraud Analysis Report")
 
-    # Feature Importance Graph
-    feature_importance_path = "download (1).png"
-    if os.path.exists(feature_importance_path):
-        feature_importance_img = Image.open(feature_importance_path)
-        st.image(feature_importance_img, caption="Feature Importance in Fraud Detection", use_column_width=True)
-    else:
-        st.error(f"❌ Image file '{feature_importance_path}' not found! Please check the file name.")
+    # Feature Importance Button
+    if st.button("📈 Show Feature Importance", help="Click to view the most important factors in fraud detection."):
+        st.markdown('<div class="graph-section">', unsafe_allow_html=True)
+        feature_importance_path = "download (1).png"
+        if os.path.exists(feature_importance_path):
+            feature_importance_img = Image.open(feature_importance_path)
+            st.image(feature_importance_img, caption="Feature Importance in Fraud Detection", use_column_width=True)
+        else:
+            st.error(f"❌ Image file '{feature_importance_path}' not found!")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    # SHAP Explainability Graph
-    shap_path = "download (2).png"
-    if os.path.exists(shap_path):
-        shap_img = Image.open(shap_path)
-        st.image(shap_img, caption="SHAP Values for Fraud Model", use_column_width=True)
-    else:
-        st.error(f"❌ Image file '{shap_path}' not found! Please check the file name.")
+    # SHAP Explainability Button
+    if st.button("🔍 Show SHAP Values", help="Click to see how different features contribute to fraud prediction."):
+        st.markdown('<div class="graph-section">', unsafe_allow_html=True)
+        shap_path = "download (2).png"
+        if os.path.exists(shap_path):
+            shap_img = Image.open(shap_path)
+            st.image(shap_img, caption="SHAP Values for Fraud Model", use_column_width=True)
+        else:
+            st.error(f"❌ Image file '{shap_path}' not found!")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    # Fraud Distribution Graph
-    fraud_analysis_path = "download (3).png"
-    if os.path.exists(fraud_analysis_path):
-        fraud_analysis_img = Image.open(fraud_analysis_path)
-        st.image(fraud_analysis_img, caption="Fraud Transaction Distribution", use_column_width=True)
-    else:
-        st.error(f"❌ Image file '{fraud_analysis_path}' not found! Please check the file name.")
+    # Fraud Transaction Distribution Button
+    if st.button("📊 Show Fraud Distribution", help="Click to view fraud transaction trends."):
+        st.markdown('<div class="graph-section">', unsafe_allow_html=True)
+        fraud_analysis_path = "download (3).png"
+        if os.path.exists(fraud_analysis_path):
+            fraud_analysis_img = Image.open(fraud_analysis_path)
+            st.image(fraud_analysis_img, caption="Fraud Transaction Distribution", use_column_width=True)
+        else:
+            st.error(f"❌ Image file '{fraud_analysis_path}' not found!")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 if __name__ == '__main__':
     main()
