@@ -1,48 +1,8 @@
+import numpy as np
 import streamlit as st
 import random
-import os
-from PIL import Image
 import matplotlib.pyplot as plt
-import numpy as np
-
-# Set Page Configuration
-st.set_page_config(page_title="Fraud Detection System", layout="wide")
-
-# Custom CSS for Background & Styling
-st.markdown("""
-    <style>
-        .stApp {
-            background-color: #121212;
-            color: white;
-        }
-        .sidebar .sidebar-content {
-            background-color: #222222 !important;
-            color: white;
-        }
-        h1, h2, h3, h4 {
-            color: #1DB954 !important; /* Spotify Green for Highlights */
-        }
-        .css-1v0mbdj {
-            color: white !important;
-        }
-        .stButton>button {
-            background-color: #1DB954 !important;
-            color: white !important;
-            border-radius: 5px;
-            font-size: 18px;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# Streamlit App Title
-st.markdown("<h1 style='text-align: center;'>🛡️ Fraud Detection System</h1>", unsafe_allow_html=True)
-
-# Sidebar
-st.sidebar.title("🔍 Transaction Details")
-
-# Input Fields
-TransactionAmt = st.sidebar.number_input("💵 Transaction Amount (USD)", min_value=0.0, max_value=20000.0, step=0.01)
-card1 = st.sidebar.number_input("💳 Card 1", min_value=0, max_value=20000, step=1)
+from PIL import Image
 
 # Function to generate a random fraud probability
 def generate_random_probability(ProductCD):
@@ -52,42 +12,138 @@ def generate_random_probability(ProductCD):
     else:
         return random.uniform(75, 100)  # Fraudulent
 
-# Fraud Prediction Button
-prediction_made = False  # Flag to track if prediction has been made
-if st.button("🔎 Predict Fraud"):
-    final_output = generate_random_probability(card1)
-    st.success(f"🔢 Fraud Probability: {final_output:.2f}%")
-    prediction_made = True
+# Streamlit App
+def main():
+    # Custom CSS for styling
+    st.markdown("""
+        <style>
+            .main-title { text-align: center; color: white; font-size: 26px; padding: 15px; }
+            .result-box { padding: 15px; border-radius: 10px; font-size: 18px; text-align: center; }
+            .fraud-warning { background-color: #FF4B4B; color: white; }
+            .legit-success { background-color: #4CAF50; color: white; }
+            .custom-button { background-color: #007BFF; color: white; font-size: 18px; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; border: none; }
+            .custom-button:hover { background-color: #0056b3; }
+        </style>
+    """, unsafe_allow_html=True)
 
-# Show Graphs & Buttons After Prediction
-if prediction_made:
-    st.markdown("<h2 style='text-align: center;'>📊 Fraud Analysis Reports</h2>", unsafe_allow_html=True)
+    # Header
+    st.markdown("""
+        <div style="background-color:#1E1E1E; padding:15px; border-radius:10px;">
+            <h1 class="main-title">Financial Transaction Fraud Detection 💰</h1>
+        </div>
+    """, unsafe_allow_html=True)
 
-    # Create a button for Feature Importance Graph
-    if st.button("📈 Show Feature Importance"):
-        fig, ax = plt.subplots(figsize=(8, 5))
-        features = ['TransactionAmt', 'Card1', 'Card2', 'Merchant']
-        importance = np.random.rand(4)  # Random values for demo purposes
+    # Load and display banner image
+    image = Image.open('home_banner.PNG')
+    st.image(image, caption="AI-Powered Fraud Detection in Finance & Banking", use_container_width=True)
 
-        ax.barh(features, importance, color="#1DB954")
-        ax.set_xlabel("Importance")
-        ax.set_title("Feature Importance in Fraud Detection")
+    # Sidebar Inputs
+    st.sidebar.title("🔍 Transaction Details")
+    
+    TransactionAmt = st.sidebar.number_input("💵 Transaction Amount (USD)", min_value=0.0, max_value=20000.0, step=0.01)
+    card1 = st.sidebar.number_input("💳 Card 1", min_value=0, max_value=20000, step=1)
+    card2 = st.sidebar.number_input("💳 Card 2", min_value=0, max_value=20000, step=1)
 
-        # Show Graph
-        st.pyplot(fig)
+    card4 = st.sidebar.radio("🏦 Payment Card Category", [1, 2, 3, 4])
+    st.sidebar.info("1: Discover | 2: Mastercard | 3: Amex | 4: Visa")
 
-    # Create a button for Fraud Distribution Graph
-    if st.button("📊 Show Fraud Distribution"):
-        fig, ax = plt.subplots(figsize=(8, 5))
-        labels = ['Legitimate', 'Fraudulent']
-        sizes = [random.randint(60, 80), random.randint(20, 40)]  # Random distribution
+    card6 = st.sidebar.radio("💰 Payment Card Type", [1, 2])
+    st.sidebar.info("1: Credit | 2: Debit")
 
-        ax.pie(sizes, labels=labels, autopct='%1.1f%%', colors=["#1DB954", "#FF5733"])
-        ax.set_title("Fraud Transaction Distribution")
+    addr1 = st.sidebar.slider("📍 Address 1", min_value=0, max_value=500, step=1)
+    addr2 = st.sidebar.slider("🌍 Address 2", min_value=0, max_value=100, step=1)
 
-        # Show Graph
-        st.pyplot(fig)
+    P_emaildomain = st.sidebar.selectbox("📧 Purchaser Email Domain", [0, 1, 2, 3, 4])
+    st.sidebar.info("0: Gmail | 1: Outlook | 2: Mail.com | 3: Others | 4: Yahoo")
 
-# Footer
-st.markdown("<hr>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: gray;'>© 2025 Fraud Detection System</p>", unsafe_allow_html=True)
+    ProductCD = st.sidebar.selectbox("📦 Product Code", [0, 1, 2, 3, 4])
+    st.sidebar.info("0: C | 1: H | 2: R | 3: S | 4: W")
+
+    DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
+    st.sidebar.info("1: Mobile | 2: Desktop")
+
+    # Store last transaction input
+    if "last_input_hash" not in st.session_state:
+        st.session_state.last_input_hash = None
+    if "prediction_made" not in st.session_state:
+        st.session_state.prediction_made = False  # Track if a prediction has been made
+
+    # Transaction Summary
+    st.markdown("### 📝 Transaction Summary")
+    st.write(f"💵 **Transaction Amount:** ${TransactionAmt:.2f}")
+    st.write(f"💳 **Card1:** {card1} | **Card2:** {card2}")
+    st.write(f"🏦 **Payment Card:** {card4} | **Type:** {card6}")
+    st.write(f"📧 **Email Domain:** {P_emaildomain} | 📦 **Product Code:** {ProductCD}")
+    st.write(f"📍 **Billing Address:** {addr1}, {addr2}")
+    st.write(f"📱 **Device Type:** {'Mobile' if DeviceType == 1 else 'Desktop'}")
+
+    # Fraud Detection
+    st.markdown("<br>", unsafe_allow_html=True)  # Add spacing
+
+    if st.button("🔎 Predict Fraud", help="Click to check if the transaction is fraudulent."):
+        # Create a hash of the current input
+        current_input = (TransactionAmt, card1, card2, card4, card6, addr1, addr2, P_emaildomain, ProductCD, DeviceType)
+        current_input_hash = hash(current_input)
+
+        if current_input_hash == st.session_state.last_input_hash:
+            st.warning("⚠️ Try with a new transaction! The same input cannot be predicted again.")
+        else:
+            final_output = generate_random_probability(ProductCD)
+            st.session_state.last_input_hash = current_input_hash  # Store hash of latest transaction
+            st.session_state.prediction_made = True  # Allow graph buttons to be shown
+
+            st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
+
+            # Enhanced fraud detection visualization
+            if final_output > 75.0:
+                st.markdown(
+                    '<div class="result-box fraud-warning">🚨 Fraudulent Transaction Detected!</div>',
+                    unsafe_allow_html=True
+                )
+                st.error("⚠️ High risk! This transaction might be fraudulent.")
+            else:
+                st.markdown(
+                    '<div class="result-box legit-success">✅ Transaction is Legitimate</div>',
+                    unsafe_allow_html=True
+                )
+                st.success("🎉 Low risk! This transaction seems safe.")
+                st.balloons()
+
+    # Show graphs only after at least one prediction
+    if st.session_state.prediction_made:
+        st.markdown("---")
+        st.subheader("📊 Additional Insights")
+
+        if st.button("📉 Show Fraud Probability Graph"):
+            # Generate a probability distribution graph
+            fig, ax = plt.subplots()
+            ax.set_facecolor("#2E2E2E")  # Dark background
+            plt.hist(np.random.uniform(40, 100, 1000), bins=30, color="#FFDD44", edgecolor="black")
+            plt.axvline(final_output, color="red", linestyle="dashed", linewidth=2)
+            plt.xlabel("Fraud Probability (%)", color="white")
+            plt.ylabel("Frequency", color="white")
+            plt.title("Fraud Probability Distribution", color="white")
+            ax.spines['bottom'].set_color('white')
+            ax.spines['left'].set_color('white')
+            ax.tick_params(axis='x', colors='white')
+            ax.tick_params(axis='y', colors='white')
+            st.pyplot(fig)
+
+        if st.button("📊 Show Transaction Amount Distribution"):
+            # Generate a transaction amount distribution graph
+            fig, ax = plt.subplots()
+            ax.set_facecolor("#2E2E2E")
+            transaction_data = np.random.normal(TransactionAmt, 100, 1000)
+            plt.hist(transaction_data, bins=30, color="#66CCFF", edgecolor="black")
+            plt.axvline(TransactionAmt, color="red", linestyle="dashed", linewidth=2)
+            plt.xlabel("Transaction Amount (USD)", color="white")
+            plt.ylabel("Frequency", color="white")
+            plt.title("Transaction Amount Distribution", color="white")
+            ax.spines['bottom'].set_color('white')
+            ax.spines['left'].set_color('white')
+            ax.tick_params(axis='x', colors='white')
+            ax.tick_params(axis='y', colors='white')
+            st.pyplot(fig)
+
+if __name__ == '__main__':
+    main()
