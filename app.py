@@ -27,7 +27,8 @@ def main():
             .legit-success { background-color: #4CAF50; color: white; }
             .custom-button { background-color: #007BFF; color: white; font-size: 18px; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; border: none; }
             .custom-button:hover { background-color: #0056b3; }
-            .graph-section { background-color: #1E1E1E; padding: 20px; border-radius: 10px; margin-top: 20px; }
+            .graph-section { background-color: rgba(50, 50, 50, 0.8); padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; }
+            .graph-section img { border-radius: 10px; }
         </style>
     """, unsafe_allow_html=True)
 
@@ -69,10 +70,6 @@ def main():
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
     st.sidebar.info("1: Mobile | 2: Desktop")
 
-    # Store last transaction input
-    if "last_input_hash" not in st.session_state:
-        st.session_state.last_input_hash = None
-
     # Transaction Summary
     st.markdown("### 📝 Transaction Summary")
     st.write(f"💵 **Transaction Amount:** ${TransactionAmt:.2f}")
@@ -86,33 +83,25 @@ def main():
     st.markdown("<br>", unsafe_allow_html=True)  # Add spacing
 
     if st.button("🔎 Predict Fraud", help="Click to check if the transaction is fraudulent."):
-        # Create a hash of the current input
-        current_input = (TransactionAmt, card1, card2, card4, card6, addr1, addr2, P_emaildomain, ProductCD, DeviceType)
-        current_input_hash = hash(current_input)
+        final_output = generate_random_probability(ProductCD)
+        st.session_state.prediction_done = True  # Mark that a prediction has been made
 
-        if current_input_hash == st.session_state.last_input_hash:
-            st.warning("⚠️ Try with a new transaction! The same input cannot be predicted again.")
+        st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
+
+        # Enhanced fraud detection visualization
+        if final_output > 75.0:
+            st.markdown(
+                '<div class="result-box fraud-warning">🚨 Fraudulent Transaction Detected!</div>',
+                unsafe_allow_html=True
+            )
+            st.error("⚠️ High risk! This transaction might be fraudulent.")
         else:
-            final_output = generate_random_probability(ProductCD)
-            st.session_state.last_input_hash = current_input_hash  # Store hash of latest transaction
-            st.session_state.prediction_done = True  # Mark that a prediction has been made
-
-            st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
-
-            # Enhanced fraud detection visualization
-            if final_output > 75.0:
-                st.markdown(
-                    '<div class="result-box fraud-warning">🚨 Fraudulent Transaction Detected!</div>',
-                    unsafe_allow_html=True
-                )
-                st.error("⚠️ High risk! This transaction might be fraudulent.")
-            else:
-                st.markdown(
-                    '<div class="result-box legit-success">✅ Transaction is Legitimate</div>',
-                    unsafe_allow_html=True
-                )
-                st.success("🎉 Low risk! This transaction seems safe.")
-                st.balloons()
+            st.markdown(
+                '<div class="result-box legit-success">✅ Transaction is Legitimate</div>',
+                unsafe_allow_html=True
+            )
+            st.success("🎉 Low risk! This transaction seems safe.")
+            st.balloons()
 
     # 📊 Fraud Analysis Section - Only show after at least one prediction
     if st.session_state.prediction_done:
