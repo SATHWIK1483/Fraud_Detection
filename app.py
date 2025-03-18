@@ -1,6 +1,7 @@
 import numpy as np
 import streamlit as st
 import random
+import os
 from PIL import Image
 
 # Function to generate a random fraud probability
@@ -13,7 +14,7 @@ def generate_random_probability(ProductCD):
 
 # Streamlit App
 def main():
-    # Custom CSS for Styling
+    # Custom CSS for styling
     st.markdown("""
         <style>
             .main-title { text-align: center; color: white; font-size: 26px; padding: 15px; }
@@ -22,7 +23,6 @@ def main():
             .legit-success { background-color: #4CAF50; color: white; }
             .custom-button { background-color: #007BFF; color: white; font-size: 18px; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; border: none; }
             .custom-button:hover { background-color: #0056b3; }
-            .graph-container { text-align: center; }
         </style>
     """, unsafe_allow_html=True)
 
@@ -34,8 +34,10 @@ def main():
     """, unsafe_allow_html=True)
 
     # Load and display banner image
-    image = Image.open('home_banner.PNG')
-    st.image(image, caption="AI-Powered Fraud Detection in Finance & Banking", use_container_width=True)
+    banner_path = "home_banner.PNG"
+    if os.path.exists(banner_path):
+        banner_img = Image.open(banner_path)
+        st.image(banner_img, caption="AI-Powered Fraud Detection in Finance & Banking", use_container_width=True)
 
     # Sidebar Inputs
     st.sidebar.title("🔍 Transaction Details")
@@ -106,33 +108,32 @@ def main():
                 st.success("🎉 Low risk! This transaction seems safe.")
                 st.balloons()
 
-    # 📊 Fraud Analysis Report
-    st.markdown("---")
+    # 📊 Fraud Analysis Section
     st.markdown("## 📊 Fraud Analysis Report")
 
-    st.markdown("### 🔍 Feature Importance in Fraud Detection")
-    feature_importance_img = Image.open("/mnt/data/download (1).png")
-    st.image(feature_importance_img, caption="Feature Importance Plot", use_column_width=True)
+    # Feature Importance Graph
+    feature_importance_path = "download (1).png"
+    if os.path.exists(feature_importance_path):
+        feature_importance_img = Image.open(feature_importance_path)
+        st.image(feature_importance_img, caption="Feature Importance in Fraud Detection", use_column_width=True)
+    else:
+        st.error(f"❌ Image file '{feature_importance_path}' not found! Please check the file name.")
 
-    st.markdown("### 📊 SHAP Value Analysis")
-    shap_img = Image.open("/mnt/data/download (2).png")
-    st.image(shap_img, caption="SHAP Value Plot", use_column_width=True)
+    # SHAP Explainability Graph
+    shap_path = "download (2).png"
+    if os.path.exists(shap_path):
+        shap_img = Image.open(shap_path)
+        st.image(shap_img, caption="SHAP Values for Fraud Model", use_column_width=True)
+    else:
+        st.error(f"❌ Image file '{shap_path}' not found! Please check the file name.")
 
-    st.markdown("### 📈 Additional Fraud Analysis")
-    additional_img = Image.open("/mnt/data/download.png")
-    st.image(additional_img, caption="Additional Fraud Analysis", use_column_width=True)
-
-    # Highlighting the most contributing features
-    st.markdown("### 🔥 Top Contributing Features")
-    top_features = ['card1', 'card2', 'addr1', 'P_emaildomain', 'TransactionAmt']
-    st.write("The most critical features impacting fraud detection based on model analysis are:")
-    st.markdown(f"""
-    - 🏆 **{top_features[0]}**
-    - 🥈 **{top_features[1]}**
-    - 🥉 **{top_features[2]}**
-    - 🔹 {top_features[3]}
-    - 🔸 {top_features[4]}
-    """)
+    # Fraud Distribution Graph
+    fraud_analysis_path = "download (3).png"
+    if os.path.exists(fraud_analysis_path):
+        fraud_analysis_img = Image.open(fraud_analysis_path)
+        st.image(fraud_analysis_img, caption="Fraud Transaction Distribution", use_column_width=True)
+    else:
+        st.error(f"❌ Image file '{fraud_analysis_path}' not found! Please check the file name.")
 
 if __name__ == '__main__':
     main()
