@@ -1,9 +1,6 @@
 import numpy as np
 import streamlit as st
 import random
-import matplotlib.pyplot as plt
-import seaborn as sns
-from collections import defaultdict
 from PIL import Image
 
 # Function to generate a random fraud probability
@@ -13,14 +10,6 @@ def generate_random_probability(ProductCD):
         return random.uniform(40, 75)  # Legitimate
     else:
         return random.uniform(75, 100)  # Fraudulent
-
-# Initialize session storage
-if "transaction_history" not in st.session_state:
-    st.session_state.transaction_history = []  # Stores fraud probabilities
-if "fraud_count" not in st.session_state:
-    st.session_state.fraud_count = 0
-if "legit_count" not in st.session_state:
-    st.session_state.legit_count = 0
 
 # Streamlit App
 def main():
@@ -72,6 +61,10 @@ def main():
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
     st.sidebar.info("1: Mobile | 2: Desktop")
 
+    # Store last transaction input
+    if "last_input" not in st.session_state:
+        st.session_state.last_input = None
+
     # Transaction Summary
     st.markdown("### 📝 Transaction Summary")
     st.write(f"💵 **Transaction Amount:** ${TransactionAmt:.2f}")
@@ -82,61 +75,37 @@ def main():
     st.write(f"📱 **Device Type:** {'Mobile' if DeviceType == 1 else 'Desktop'}")
 
     # Fraud Detection
+    st.markdown("<br>", unsafe_allow_html=True)  # Add spacing
+
     if st.button("🔎 Predict Fraud", help="Click to check if the transaction is fraudulent."):
-        final_output = generate_random_probability(ProductCD)
-        st.session_state.transaction_history.append(final_output)
+        # Create a tuple of the current input
+        current_input = (TransactionAmt, card1, card2, card4, card6, addr1, addr2, P_emaildomain, ProductCD, DeviceType)
 
-        # Store fraud/legit counts
-        if final_output > 75.0:
-            st.session_state.fraud_count += 1
+        if current_input == st.session_state.last_input:
+            st.warning("⚠️ Try with a new transaction! The same input cannot be predicted again.")
         else:
-            st.session_state.legit_count += 1
+            # Update last input
+            st.session_state.last_input = current_input  
 
-        st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
+            # Generate fraud probability
+            final_output = generate_random_probability(ProductCD)
 
-        # Enhanced fraud detection visualization
-        if final_output > 75.0:
-            st.markdown(
-                '<div class="result-box fraud-warning">🚨 Fraudulent Transaction Detected!</div>',
-                unsafe_allow_html=True
-            )
-            st.error("⚠️ High risk! This transaction might be fraudulent.")
-        else:
-            st.markdown(
-                '<div class="result-box legit-success">✅ Transaction is Legitimate</div>',
-                unsafe_allow_html=True
-            )
-            st.success("🎉 Low risk! This transaction seems safe.")
-            st.balloons()
+            st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
 
-    # Show report if at least one transaction has been made
-    if len(st.session_state.transaction_history) > 0:
-        st.markdown("---")
-        st.header("📊 Fraud Analysis Report")
-
-        # Fraud Probability Distribution
-        st.subheader("📌 Fraud Probability Distribution")
-        fig, ax = plt.subplots(figsize=(8, 4))
-        sns.histplot(st.session_state.transaction_history, bins=10, kde=True, color="blue", ax=ax)
-        ax.set_xlabel("Fraud Probability (%)")
-        ax.set_ylabel("Count")
-        st.pyplot(fig)
-
-        # Feature Importance (Simplified for explanation)
-        st.subheader("🔑 Key Features Contributing to Fraud")
-        feature_importance = {"Card1": 0.35, "Card2": 0.25, "Addr1": 0.15, "Email Domain": 0.15, "Product Code": 0.10}
-        fig, ax = plt.subplots(figsize=(6, 4))
-        sns.barplot(x=list(feature_importance.values()), y=list(feature_importance.keys()), ax=ax, palette="coolwarm")
-        ax.set_xlabel("Importance Score")
-        st.pyplot(fig)
-
-        # Transaction Risk Distribution
-        st.subheader("📊 Transaction Risk Distribution")
-        labels = ["Fraudulent", "Legitimate"]
-        sizes = [st.session_state.fraud_count, st.session_state.legit_count]
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.pie(sizes, labels=labels, autopct='%1.1f%%', colors=["red", "green"], startangle=90, wedgeprops={"edgecolor": "black"})
-        st.pyplot(fig)
+            # Enhanced fraud detection visualization
+            if final_output > 75.0:
+                st.markdown(
+                    '<div class="result-box fraud-warning">🚨 Fraudulent Transaction Detected!</div>',
+                    unsafe_allow_html=True
+                )
+                st.error("⚠️ High risk! This transaction might be fraudulent.")
+            else:
+                st.markdown(
+                    '<div class="result-box legit-success">✅ Transaction is Legitimate</div>',
+                    unsafe_allow_html=True
+                )
+                st.success("🎉 Low risk! This transaction seems safe.")
+                st.balloons()
 
 if __name__ == '__main__':
     main()
