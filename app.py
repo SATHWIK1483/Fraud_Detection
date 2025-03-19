@@ -3,7 +3,6 @@ import streamlit as st
 import random
 import matplotlib.pyplot as plt
 import seaborn as sns
-from collections import defaultdict
 from PIL import Image
 
 # Function to generate a random fraud probability
@@ -14,6 +13,14 @@ def generate_random_probability(ProductCD):
     else:
         return random.uniform(75, 100)  # Fraudulent
 
+# Function to generate dynamic feature importance
+def get_dynamic_feature_importance():
+    """Randomly select and assign importance scores to 5 features."""
+    all_features = ["Card1", "Card2", "Addr1", "Addr2", "Email Domain", "Product Code", "Device Type", "TransactionAmt"]
+    selected_features = random.sample(all_features, 5)  # Select 5 random features
+    importance_scores = np.random.dirichlet(np.ones(5), size=1)[0]  # Random scores summing to 1
+    return dict(zip(selected_features, importance_scores))
+
 # Initialize session storage
 if "transaction_history" not in st.session_state:
     st.session_state.transaction_history = []  # Stores fraud probabilities
@@ -21,9 +28,13 @@ if "fraud_count" not in st.session_state:
     st.session_state.fraud_count = 0
 if "legit_count" not in st.session_state:
     st.session_state.legit_count = 0
+if "feature_importance" not in st.session_state:
+    st.session_state.feature_importance = get_dynamic_feature_importance()  # Store dynamic feature importance
 
-# Streamlit App
-def main():
+# Page Routing
+page = st.sidebar.radio("🔗 Navigation", ["Home", "Fraud Report"])
+
+if page == "Home":
     # Custom CSS for styling
     st.markdown("""
         <style>
@@ -49,7 +60,7 @@ def main():
 
     # Sidebar Inputs
     st.sidebar.title("🔍 Transaction Details")
-    
+
     TransactionAmt = st.sidebar.number_input("💵 Transaction Amount (USD)", min_value=0.0, max_value=20000.0, step=0.01)
     card1 = st.sidebar.number_input("💳 Card 1", min_value=0, max_value=20000, step=1)
     card2 = st.sidebar.number_input("💳 Card 2", min_value=0, max_value=20000, step=1)
@@ -72,15 +83,6 @@ def main():
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
     st.sidebar.info("1: Mobile | 2: Desktop")
 
-    # Transaction Summary
-    st.markdown("### 📝 Transaction Summary")
-    st.write(f"💵 **Transaction Amount:** ${TransactionAmt:.2f}")
-    st.write(f"💳 **Card1:** {card1} | **Card2:** {card2}")
-    st.write(f"🏦 **Payment Card:** {card4} | **Type:** {card6}")
-    st.write(f"📧 **Email Domain:** {P_emaildomain} | 📦 **Product Code:** {ProductCD}")
-    st.write(f"📍 **Billing Address:** {addr1}, {addr2}")
-    st.write(f"📱 **Device Type:** {'Mobile' if DeviceType == 1 else 'Desktop'}")
-
     # Fraud Detection
     if st.button("🔎 Predict Fraud", help="Click to check if the transaction is fraudulent."):
         final_output = generate_random_probability(ProductCD)
@@ -91,6 +93,9 @@ def main():
             st.session_state.fraud_count += 1
         else:
             st.session_state.legit_count += 1
+
+        # Update feature importance for each new prediction
+        st.session_state.feature_importance = get_dynamic_feature_importance()
 
         st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
 
@@ -109,34 +114,37 @@ def main():
             st.success("🎉 Low risk! This transaction seems safe.")
             st.balloons()
 
-    # Show report if at least one transaction has been made
+    # Redirect to report page
     if len(st.session_state.transaction_history) > 0:
         st.markdown("---")
-        st.header("📊 Fraud Analysis Report")
+        st.markdown("### 📊 View Full Fraud Report")
+        if st.button("📄 View Report"):
+            st.sidebar.radio("🔗 Navigation", ["Fraud Report"], index=0)
 
-        # Fraud Probability Distribution
-        st.subheader("📌 Fraud Probability Distribution")
-        fig, ax = plt.subplots(figsize=(8, 4))
-        sns.histplot(st.session_state.transaction_history, bins=10, kde=True, color="blue", ax=ax)
-        ax.set_xlabel("Fraud Probability (%)")
-        ax.set_ylabel("Count")
-        st.pyplot(fig)
+elif page == "Fraud Report":
+    st.header("📊 Fraud Analysis Report")
 
-        # Feature Importance (Simplified for explanation)
-        st.subheader("🔑 Key Features Contributing to Fraud")
-        feature_importance = {"Card1": 0.35, "Card2": 0.25, "Addr1": 0.15, "Email Domain": 0.15, "Product Code": 0.10}
-        fig, ax = plt.subplots(figsize=(6, 4))
-        sns.barplot(x=list(feature_importance.values()), y=list(feature_importance.keys()), ax=ax, palette="coolwarm")
-        ax.set_xlabel("Importance Score")
-        st.pyplot(fig)
+    # Fraud Probability Distribution
+    st.subheader("📌 Fraud Probability Distribution")
+    fig, ax = plt.subplots(figsize=(8, 4))
+    sns.histplot(st.session_state.transaction_history, bins=10, kde=True, color="blue", ax=ax)
+    ax.set_xlabel("Fraud Probability (%)")
+    ax.set_ylabel("Count")
+    st.pyplot(fig)
 
-        # Transaction Risk Distribution
-        st.subheader("📊 Transaction Risk Distribution")
-        labels = ["Fraudulent", "Legitimate"]
-        sizes = [st.session_state.fraud_count, st.session_state.legit_count]
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.pie(sizes, labels=labels, autopct='%1.1f%%', colors=["red", "green"], startangle=90, wedgeprops={"edgecolor": "black"})
-        st.pyplot(fig)
+    # Dynamic Feature Importance
+    st.subheader("🔑 Key Features Contributing to Fraud")
+    fig, ax = plt.subplots(figsize=(6, 4))
+    sns.barplot(x=list(st.session_state.feature_importance.values()), y=list(st.session_state.feature_importance.keys()), ax=ax, palette="coolwarm")
+    ax.set_xlabel("Importance Score")
+    st.pyplot(fig)
 
-if __name__ == '__main__':
-    main()
+    # Transaction Risk Distribution
+    st.subheader("📊 Transaction Risk Distribution")
+    labels = ["Fraudulent", "Legitimate"]
+    sizes = [st.session_state.fraud_count, st.session_state.legit_count]
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.pie(sizes, labels=labels, autopct='%1.1f%%', colors=["red", "green"], startangle=90, wedgeprops={"edgecolor": "black"})
+    st.pyplot(fig)
+
+    st.sidebar.radio("🔗 Navigation", ["Home"], index=0)
