@@ -3,6 +3,7 @@ import streamlit as st
 import random
 import matplotlib.pyplot as plt
 import seaborn as sns
+from collections import defaultdict
 from PIL import Image
 
 # Function to generate a random fraud probability
@@ -20,8 +21,6 @@ if "fraud_count" not in st.session_state:
     st.session_state.fraud_count = 0
 if "legit_count" not in st.session_state:
     st.session_state.legit_count = 0
-if "last_transaction" not in st.session_state:
-    st.session_state.last_transaction = None  # Stores the last transaction input
 
 # Streamlit App
 def main():
@@ -32,6 +31,8 @@ def main():
             .result-box { padding: 15px; border-radius: 10px; font-size: 18px; text-align: center; }
             .fraud-warning { background-color: #FF4B4B; color: white; }
             .legit-success { background-color: #4CAF50; color: white; }
+            .custom-button { background-color: #007BFF; color: white; font-size: 18px; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; border: none; }
+            .custom-button:hover { background-color: #0056b3; }
         </style>
     """, unsafe_allow_html=True)
 
@@ -48,20 +49,28 @@ def main():
 
     # Sidebar Inputs
     st.sidebar.title("🔍 Transaction Details")
-
+    
     TransactionAmt = st.sidebar.number_input("💵 Transaction Amount (USD)", min_value=0.0, max_value=20000.0, step=0.01)
     card1 = st.sidebar.number_input("💳 Card 1", min_value=0, max_value=20000, step=1)
     card2 = st.sidebar.number_input("💳 Card 2", min_value=0, max_value=20000, step=1)
 
     card4 = st.sidebar.radio("🏦 Payment Card Category", [1, 2, 3, 4])
+    st.sidebar.info("1: Discover | 2: Mastercard | 3: Amex | 4: Visa")
+
     card6 = st.sidebar.radio("💰 Payment Card Type", [1, 2])
+    st.sidebar.info("1: Credit | 2: Debit")
 
     addr1 = st.sidebar.slider("📍 Address 1", min_value=0, max_value=500, step=1)
     addr2 = st.sidebar.slider("🌍 Address 2", min_value=0, max_value=100, step=1)
 
     P_emaildomain = st.sidebar.selectbox("📧 Purchaser Email Domain", [0, 1, 2, 3, 4])
+    st.sidebar.info("0: Gmail | 1: Outlook | 2: Mail.com | 3: Others | 4: Yahoo")
+
     ProductCD = st.sidebar.selectbox("📦 Product Code", [0, 1, 2, 3, 4])
+    st.sidebar.info("0: C | 1: H | 2: R | 3: S | 4: W")
+
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
+    st.sidebar.info("1: Mobile | 2: Desktop")
 
     # Transaction Summary
     st.markdown("### 📝 Transaction Summary")
@@ -74,40 +83,31 @@ def main():
 
     # Fraud Detection
     if st.button("🔎 Predict Fraud", help="Click to check if the transaction is fraudulent."):
-        current_transaction = (TransactionAmt, card1, card2, card4, card6, addr1, addr2, P_emaildomain, ProductCD, DeviceType)
+        final_output = generate_random_probability(ProductCD)
+        st.session_state.transaction_history.append(final_output)
 
-        if current_transaction == st.session_state.last_transaction:
-            st.warning("⚠️ Please change the transaction details before predicting again!")
+        # Store fraud/legit counts
+        if final_output > 75.0:
+            st.session_state.fraud_count += 1
         else:
-            # Update last transaction
-            st.session_state.last_transaction = current_transaction
+            st.session_state.legit_count += 1
 
-            # Generate fraud probability
-            final_output = generate_random_probability(ProductCD)
-            st.session_state.transaction_history.append(final_output)
+        st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
 
-            # Update fraud/legit counts
-            if final_output > 75.0:
-                st.session_state.fraud_count += 1
-            else:
-                st.session_state.legit_count += 1
-
-            st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
-
-            # Enhanced fraud detection visualization
-            if final_output > 75.0:
-                st.markdown(
-                    '<div class="result-box fraud-warning">🚨 Fraudulent Transaction Detected!</div>',
-                    unsafe_allow_html=True
-                )
-                st.error("⚠️ High risk! This transaction might be fraudulent.")
-            else:
-                st.markdown(
-                    '<div class="result-box legit-success">✅ Transaction is Legitimate</div>',
-                    unsafe_allow_html=True
-                )
-                st.success("🎉 Low risk! This transaction seems safe.")
-                st.balloons()
+        # Enhanced fraud detection visualization
+        if final_output > 75.0:
+            st.markdown(
+                '<div class="result-box fraud-warning">🚨 Fraudulent Transaction Detected!</div>',
+                unsafe_allow_html=True
+            )
+            st.error("⚠️ High risk! This transaction might be fraudulent.")
+        else:
+            st.markdown(
+                '<div class="result-box legit-success">✅ Transaction is Legitimate</div>',
+                unsafe_allow_html=True
+            )
+            st.success("🎉 Low risk! This transaction seems safe.")
+            st.balloons()
 
     # Show report if at least one transaction has been made
     if len(st.session_state.transaction_history) > 0:
