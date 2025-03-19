@@ -5,3 +5,4 @@ pickleshare>=0.7.5
 pandas>=1.3.5
 scikit-learn>=1.0.2
 matplotlib
+seaborn
