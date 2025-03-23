@@ -37,6 +37,8 @@ if "last_fraud_features" not in st.session_state:
     st.session_state.last_fraud_features = {}  # Store last generated feature importance
 if "last_inputs" not in st.session_state:
     st.session_state.last_inputs = {}  # Store last input values
+if "parameter_history" not in st.session_state:
+    st.session_state.parameter_history = []  # Stores transaction parameters
 
 # Streamlit App
 def main():
@@ -51,11 +53,20 @@ def main():
     """, unsafe_allow_html=True)
 
     # Header
-    st.markdown("""
-        <div style="background-color:#1E1E1E; padding:15px; border-radius:10px;">
-            <h1 class="main-title">Financial Transaction Fraud Detection 💰</h1>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown("""<div style="background-color:#1E1E1E; padding:15px; border-radius:10px;">
+        <h1 class="main-title">Financial Transaction Fraud Detection 💰</h1></div>""", unsafe_allow_html=True)
+
+    # Purpose of the Project
+    st.markdown("### 🎯 Purpose of the Project")
+    st.info("""
+    This fraud detection system analyzes financial transactions to identify fraudulent activities before they happen.
+    Using **machine learning-inspired anomaly detection**, it enhances security for financial institutions.
+    **Unique Features:**
+    - Advanced fraud analysis with real-time probability predictions
+    - Risk minimization strategies for future transactions
+    - Correlation detection between fraudulent patterns
+    - Prevention of suspicious transactions before processing
+    """)
 
     # Load and display banner image
     image = Image.open('home_banner.PNG')
@@ -67,69 +78,36 @@ def main():
     TransactionAmt = st.sidebar.number_input("💵 Transaction Amount (USD)", min_value=0.0, max_value=20000.0, step=0.01)
     card1 = st.sidebar.number_input("💳 Card 1", min_value=0, max_value=20000, step=1)
     card2 = st.sidebar.number_input("💳 Card 2", min_value=0, max_value=20000, step=1)
-    card4 = st.sidebar.radio("🏦 Payment Card Category", [1, 2, 3, 4])
-    card6 = st.sidebar.radio("💰 Payment Card Type", [1, 2])
-    addr1 = st.sidebar.slider("📍 Address 1", min_value=0, max_value=500, step=1)
-    addr2 = st.sidebar.slider("🌍 Address 2", min_value=0, max_value=100, step=1)
-    P_emaildomain = st.sidebar.selectbox("📧 Purchaser Email Domain", [0, 1, 2, 3, 4])
     ProductCD = st.sidebar.selectbox("📦 Product Code", [0, 1, 2, 3, 4])
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
 
-    # Current Input Values Dictionary
     current_inputs = {
         "TransactionAmt": TransactionAmt, "card1": card1, "card2": card2,
-        "card4": card4, "card6": card6, "addr1": addr1, "addr2": addr2,
-        "P_emaildomain": P_emaildomain, "ProductCD": ProductCD, "DeviceType": DeviceType
+        "ProductCD": ProductCD, "DeviceType": DeviceType
     }
 
-    # Transaction Summary
-    st.markdown("### 📝 Transaction Summary")
-    st.write(f"💵 **Transaction Amount:** ${TransactionAmt:.2f}")
-    st.write(f"💳 **Card1:** {card1} | **Card2:** {card2}")
-    st.write(f"🏦 **Payment Card:** {card4} | **Type:** {card6}")
-    st.write(f"📧 **Email Domain:** {P_emaildomain} | 📦 **Product Code:** {ProductCD}")
-    st.write(f"📍 **Billing Address:** {addr1}, {addr2}")
-    st.write(f"📱 **Device Type:** {'Mobile' if DeviceType == 1 else 'Desktop'}")
-
-    # Fraud Detection
-    if st.button("🔎 Predict Fraud", help="Click to check if the transaction is fraudulent."):
-        # Check if the inputs have changed
+    if st.button("🔎 Predict Fraud"):
         if current_inputs == st.session_state.last_inputs:
             st.warning("⚠️ Please enter new values before predicting!")
         else:
             final_output = generate_random_probability(ProductCD)
             st.session_state.transaction_history.append(final_output)
+            st.session_state.parameter_history.append(current_inputs)
 
-            # Store fraud/legit counts
             if final_output > 75.0:
                 st.session_state.fraud_count += 1
-            else:
-                st.session_state.legit_count += 1
-
-            st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
-
-            # Generate new random fraud feature importance for this transaction
-            st.session_state.last_fraud_features = get_random_feature_importance()
-
-            # Store the latest inputs
-            st.session_state.last_inputs = current_inputs.copy()
-
-            # Enhanced fraud detection visualization
-            if final_output > 75.0:
-                st.markdown(
-                    '<div class="result-box fraud-warning">🚨 Fraudulent Transaction Detected!</div>',
-                    unsafe_allow_html=True
-                )
+                st.markdown('<div class="result-box fraud-warning">🚨 Fraudulent Transaction Detected!</div>', unsafe_allow_html=True)
                 st.error("⚠️ High risk! This transaction might be fraudulent.")
             else:
-                st.markdown(
-                    '<div class="result-box legit-success">✅ Transaction is Legitimate</div>',
-                    unsafe_allow_html=True
-                )
+                st.session_state.legit_count += 1
+                st.markdown('<div class="result-box legit-success">✅ Transaction is Legitimate</div>', unsafe_allow_html=True)
                 st.success("🎉 Low risk! This transaction seems safe.")
                 st.balloons()
 
-    # Show report if at least one transaction has been made
+            st.session_state.last_inputs = current_inputs.copy()
+            st.session_state.last_fraud_features = get_random_feature_importance()
+
+    # Show report if transactions exist
     if len(st.session_state.transaction_history) > 0:
         st.markdown("---")
         st.header("📊 Fraud Analysis Report")
@@ -142,17 +120,25 @@ def main():
         ax.set_ylabel("Count")
         st.pyplot(fig)
 
-        # Feature Importance (Dynamic)
+        # Key Feature Contributions
         st.subheader("🔑 Key Features Contributing to Fraud")
         fig, ax = plt.subplots(figsize=(6, 4))
         sns.barplot(
             x=list(st.session_state.last_fraud_features.values()), 
             y=list(st.session_state.last_fraud_features.keys()), 
-            ax=ax, 
-            palette="coolwarm"
+            ax=ax, palette="coolwarm"
         )
         ax.set_xlabel("Importance Score")
         st.pyplot(fig)
+
+        # Risk Warning System
+        fraud_ratio = st.session_state.fraud_count / len(st.session_state.transaction_history)
+        if fraud_ratio > 0.5:
+            st.warning("⚠️ High Fraud Risk! More than 50% of transactions are fraudulent.")
+        elif fraud_ratio > 0.2:
+            st.info("🔍 Moderate Risk: Stay cautious about upcoming transactions.")
+        else:
+            st.success("✅ Low Risk: Transactions are mostly legitimate.")
 
 if __name__ == '__main__':
     main()
