@@ -55,9 +55,11 @@ def generate_report():
     sns.histplot(st.session_state.transaction_history, bins=10, kde=True, color="blue", ax=ax)
     ax.set_xlabel("Fraud Probability (%)")
     ax.set_ylabel("Count")
-    graph_path = "fraud_probability.png"
-    fig.savefig(graph_path)
-    doc.add_picture(graph_path)
+    buffer = BytesIO()
+    fig.savefig(buffer, format='png')
+    buffer.seek(0)
+    doc.add_picture(buffer)
+    buffer.close()
     
     # Save and add key features contributing to fraud graph
     fig, ax = plt.subplots(figsize=(6, 4))
@@ -68,9 +70,11 @@ def generate_report():
         palette="coolwarm"
     )
     ax.set_xlabel("Importance Score")
-    graph_path = "feature_importance.png"
-    fig.savefig(graph_path)
-    doc.add_picture(graph_path)
+    buffer = BytesIO()
+    fig.savefig(buffer, format='png')
+    buffer.seek(0)
+    doc.add_picture(buffer)
+    buffer.close()
     
     doc.add_heading("Suggested Actions", level=2)
     doc.add_paragraph("1. Verify Cardholder Identity")
@@ -100,8 +104,10 @@ def main():
     card6 = st.sidebar.radio("💰 Payment Card Type", [1, 2])
     addr1 = st.sidebar.slider("📍 Address 1", min_value=0, max_value=500, step=1)
     addr2 = st.sidebar.slider("🌍 Address 2", min_value=0, max_value=100, step=1)
-    P_emaildomain = st.sidebar.selectbox("📧 Purchaser Email Domain", [0, 1, 2, 3, 4])
-    ProductCD = st.sidebar.selectbox("📦 Product Code", [0, 1, 2, 3, 4])
+    P_emaildomain = st.sidebar.selectbox("📧 Purchaser Email Domain", ["Gmail", "Outlook", "Mail.com", "Others", "Yahoo"])
+    st.sidebar.write(f"**Email Provider:** {P_emaildomain}")
+    ProductCD = st.sidebar.selectbox("📦 Product Code", ["C", "H", "R", "S", "W"])
+    st.sidebar.write(f"**Product Code:** {ProductCD}")
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
     
     current_inputs = {
@@ -114,7 +120,7 @@ def main():
         if current_inputs == st.session_state.last_inputs:
             st.warning("⚠️ Please enter new values before predicting!")
         else:
-            final_output = generate_random_probability(ProductCD)
+            final_output = generate_random_probability(0)
             st.session_state.transaction_history.append(final_output)
             st.session_state.last_fraud_features = get_random_feature_importance()
             st.session_state.last_inputs = current_inputs
