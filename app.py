@@ -95,7 +95,7 @@ def main():
     if st.button("🔎 Predict Fraud", help="Click to check if the transaction is fraudulent."):
         # Check if the inputs have changed
         if current_inputs == st.session_state.last_inputs:
-            st.warning(⚠️" Please enter new values before predicting!")
+            st.warning("Please enter new values before predicting!")
         else:
             final_output = generate_random_probability(ProductCD)
             st.session_state.transaction_history.append(final_output)
