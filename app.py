@@ -41,7 +41,7 @@ if "last_inputs" not in st.session_state:
 
 # Function to generate report text
 def generate_report_text():
-    report_text = """Fraud Analysis Report\n\n"
+    report_text = "Fraud Analysis Report\n\n"
     report_text += f"Total Transactions Analyzed: {len(st.session_state.transaction_history)}\n"
     report_text += f"Fraudulent Transactions: {st.session_state.fraud_count}\n"
     report_text += f"Legitimate Transactions: {st.session_state.legit_count}\n\n"
