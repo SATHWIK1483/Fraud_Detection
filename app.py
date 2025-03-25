@@ -106,8 +106,12 @@ def main():
     addr2 = st.sidebar.slider("🌍 Address 2", min_value=0, max_value=100, step=1)
     P_emaildomain = st.sidebar.selectbox("📧 Purchaser Email Domain", ["Gmail", "Outlook", "Mail.com", "Others", "Yahoo"])
     st.sidebar.write(f"**Email Provider:** {P_emaildomain}")
-    ProductCD = st.sidebar.selectbox("📦 Product Code", ["C", "H", "R", "S", "W"])
-    st.sidebar.write(f"**Product Code:** {ProductCD}")
+    ProductCD = st.sidebar.number_input("📦 Product Code", min_value=0, max_value=4, step=1)
+    st.sidebar.write("0 - C")
+    st.sidebar.write("1 - H")
+    st.sidebar.write("2 - R")
+    st.sidebar.write("3 - S")
+    st.sidebar.write("4 - W")
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
     
     current_inputs = {
