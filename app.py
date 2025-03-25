@@ -100,24 +100,30 @@ def main():
     TransactionAmt = st.sidebar.number_input("💵 Transaction Amount (USD)", min_value=0.0, max_value=20000.0, step=0.01)
     card1 = st.sidebar.number_input("💳 Card 1", min_value=0, max_value=20000, step=1)
     card2 = st.sidebar.number_input("💳 Card 2", min_value=0, max_value=20000, step=1)
-    card4 = st.sidebar.radio("🏦 Payment Card Category", [1, 2, 3, 4])
-    card6 = st.sidebar.radio("💰 Payment Card Type", [1, 2])
+    
+    card4 = st.sidebar.radio("🏦 Payment Card Category", [1, 2], format_func=lambda x: "Visa" if x == 1 else "MasterCard")
+    card6 = st.sidebar.radio("💰 Payment Card Type", [1, 2], format_func=lambda x: "Credit Card" if x == 1 else "Debit Card")
+    
     addr1 = st.sidebar.slider("📍 Address 1", min_value=0, max_value=500, step=1)
     addr2 = st.sidebar.slider("🌍 Address 2", min_value=0, max_value=100, step=1)
     P_emaildomain = st.sidebar.selectbox("📧 Purchaser Email Domain", ["Gmail", "Outlook", "Mail.com", "Others", "Yahoo"])
     st.sidebar.write(f"**Email Provider:** {P_emaildomain}")
+    
     ProductCD = st.sidebar.number_input("📦 Product Code", min_value=0, max_value=4, step=1)
     st.sidebar.write("0 - C")
     st.sidebar.write("1 - H")
     st.sidebar.write("2 - R")
     st.sidebar.write("3 - S")
     st.sidebar.write("4 - W")
+    
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
     
     current_inputs = {
         "TransactionAmt": TransactionAmt, "card1": card1, "card2": card2,
-        "card4": card4, "card6": card6, "addr1": addr1, "addr2": addr2,
-        "P_emaildomain": P_emaildomain, "ProductCD": ProductCD, "DeviceType": DeviceType
+        "card4": "Visa" if card4 == 1 else "MasterCard", 
+        "card6": "Credit Card" if card6 == 1 else "Debit Card",
+        "addr1": addr1, "addr2": addr2, "P_emaildomain": P_emaildomain,
+        "ProductCD": ProductCD, "DeviceType": DeviceType
     }
     
     if st.button("🔎 Predict Fraud"):
