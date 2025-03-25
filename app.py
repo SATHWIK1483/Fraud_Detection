@@ -38,6 +38,8 @@ if "last_fraud_features" not in st.session_state:
     st.session_state.last_fraud_features = {}  # Store last generated feature importance
 if "last_inputs" not in st.session_state:
     st.session_state.last_inputs = {}  # Store last input values
+if "graphs" not in st.session_state:
+    st.session_state.graphs = []  # Store generated graphs for the report
 
 # Function to generate report text
 def generate_report_text():
@@ -92,12 +94,26 @@ def main():
     ProductCD = st.sidebar.selectbox("📦 Product Code", [0, 1, 2, 3, 4])
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
 
-    # Fraud Probability Graph
+    # Generate Fraud Probability
+    fraud_prob = generate_random_probability(ProductCD)
+    st.session_state.transaction_history.append(fraud_prob)
+    
+    # Classify transaction
+    if fraud_prob > 75:
+        st.session_state.fraud_count += 1
+    else:
+        st.session_state.legit_count += 1
+    
+    # Generate Fraud Probability Graph
     fig, ax = plt.subplots()
     fraud_probs = [generate_random_probability(i) for i in range(5)]
     sns.barplot(x=[f"Prod {i}" for i in range(5)], y=fraud_probs, ax=ax, palette="coolwarm")
     ax.set_title("Fraud Probability Distribution")
     st.pyplot(fig)
+    
+    if st.button("📌 Add to Report"):
+        st.session_state.graphs.append(fig)
+        st.success("Graph added to the report!")
     
     if st.button("📥 Download Report"):
         report_text = generate_report_text()
