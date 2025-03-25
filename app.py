@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import defaultdict
 from PIL import Image
+import io
 
 # Function to generate a random fraud probability
 def generate_random_probability(ProductCD):
@@ -37,6 +38,22 @@ if "last_fraud_features" not in st.session_state:
     st.session_state.last_fraud_features = {}  # Store last generated feature importance
 if "last_inputs" not in st.session_state:
     st.session_state.last_inputs = {}  # Store last input values
+
+# Function to generate report text
+def generate_report_text():
+    report_text = """Fraud Analysis Report\n\n"
+    report_text += f"Total Transactions Analyzed: {len(st.session_state.transaction_history)}\n"
+    report_text += f"Fraudulent Transactions: {st.session_state.fraud_count}\n"
+    report_text += f"Legitimate Transactions: {st.session_state.legit_count}\n\n"
+    report_text += "Risk Assessment & Explanation:\n"
+    report_text += "- Transactions with a fraud probability above 75% are flagged as high risk.\n"
+    report_text += "- Key Features Contributing to Fraud:\n"
+    for feature, importance in st.session_state.last_fraud_features.items():
+        report_text += f"  - {feature}: {importance * 100:.1f}%\n"
+    report_text += "\nSuggested Actions:\n"
+    report_text += "- Verify flagged transactions manually.\n"
+    report_text += "- Implement stricter fraud detection algorithms.\n"
+    return report_text
 
 # Streamlit App
 def main():
@@ -75,84 +92,12 @@ def main():
     ProductCD = st.sidebar.selectbox("📦 Product Code", [0, 1, 2, 3, 4])
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
 
-    # Current Input Values Dictionary
-    current_inputs = {
-        "TransactionAmt": TransactionAmt, "card1": card1, "card2": card2,
-        "card4": card4, "card6": card6, "addr1": addr1, "addr2": addr2,
-        "P_emaildomain": P_emaildomain, "ProductCD": ProductCD, "DeviceType": DeviceType
-    }
-
-    # Transaction Summary
-    st.markdown("### 📝 Transaction Summary")
-    st.write(f"💵 **Transaction Amount:** ${TransactionAmt:.2f}")
-    st.write(f"💳 **Card1:** {card1} | **Card2:** {card2}")
-    st.write(f"🏦 **Payment Card:** {card4} | **Type:** {card6}")
-    st.write(f"📧 **Email Domain:** {P_emaildomain} | 📦 **Product Code:** {ProductCD}")
-    st.write(f"📍 **Billing Address:** {addr1}, {addr2}")
-    st.write(f"📱 **Device Type:** {'Mobile' if DeviceType == 1 else 'Desktop'}")
-
-    # Fraud Detection
-    if st.button("🔎 Predict Fraud", help="Click to check if the transaction is fraudulent."):
-        # Check if the inputs have changed
-        if current_inputs == st.session_state.last_inputs:
-            st.warning("Please enter new values before predicting!")
-        else:
-            final_output = generate_random_probability(ProductCD)
-            st.session_state.transaction_history.append(final_output)
-
-            # Store fraud/legit counts
-            if final_output > 75.0:
-                st.session_state.fraud_count += 1
-            else:
-                st.session_state.legit_count += 1
-
-            st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
-
-            # Generate new random fraud feature importance for this transaction
-            st.session_state.last_fraud_features = get_random_feature_importance()
-
-            # Store the latest inputs
-            st.session_state.last_inputs = current_inputs.copy()
-
-            # Enhanced fraud detection visualization
-            if final_output > 75.0:
-                st.markdown(
-                    '<div class="result-box fraud-warning">🚨 Fraudulent Transaction Detected!</div>',
-                    unsafe_allow_html=True
-                )
-                st.error("⚠️ High risk! This transaction might be fraudulent.")
-            else:
-                st.markdown(
-                    '<div class="result-box legit-success">✅ Transaction is Legitimate</div>',
-                    unsafe_allow_html=True
-                )
-                st.success("🎉 Low risk! This transaction seems safe.")
-                st.balloons()
-
-    # Show report if at least one transaction has been made
-    if len(st.session_state.transaction_history) > 0:
-        st.markdown("---")
-        st.header("📊 Fraud Analysis Report")
-
-        # Fraud Probability Distribution
-        st.subheader("📌 Fraud Probability Distribution")
-        fig, ax = plt.subplots(figsize=(8, 4))
-        sns.histplot(st.session_state.transaction_history, bins=10, kde=True, color="blue", ax=ax)
-        ax.set_xlabel("Fraud Probability (%)")
-        ax.set_ylabel("Count")
-        st.pyplot(fig)
-
-        # Feature Importance (Dynamic)
-        st.subheader("🔑 Key Features Contributing to Fraud")
-        fig, ax = plt.subplots(figsize=(6, 4))
-        sns.barplot(
-            x=list(st.session_state.last_fraud_features.values()), 
-            y=list(st.session_state.last_fraud_features.keys()), 
-            ax=ax, 
-            palette="coolwarm"
-        )
-        ax.set_xlabel("Importance Score")
-        st.pyplot(fig)
+    if st.button("📥 Download Report"):
+        report_text = generate_report_text()
+        report_bytes = io.BytesIO()
+        report_bytes.write(report_text.encode())
+        report_bytes.seek(0)
+        st.download_button("Download Report", report_bytes, file_name="fraud_analysis_report.txt", mime="text/plain")
 
 if __name__ == '__main__':
     main()
