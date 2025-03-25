@@ -116,8 +116,9 @@ def main():
     st.sidebar.write("3 - S")
     st.sidebar.write("4 - W")
     
-    DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
-    
+    # **Updated Device Type Selection**
+    DeviceType = st.sidebar.radio("📱 Device Type", ["Mobile", "Desktop"])
+
     current_inputs = {
         "TransactionAmt": TransactionAmt, "card1": card1, "card2": card2,
         "card4": "Visa" if card4 == 1 else "MasterCard", 
