@@ -50,6 +50,28 @@ def generate_report():
     for feature, score in st.session_state.last_fraud_features.items():
         doc.add_paragraph(f"- {feature}: {score}")
     
+    # Save and add fraud probability distribution graph
+    fig, ax = plt.subplots(figsize=(8, 4))
+    sns.histplot(st.session_state.transaction_history, bins=10, kde=True, color="blue", ax=ax)
+    ax.set_xlabel("Fraud Probability (%)")
+    ax.set_ylabel("Count")
+    graph_path = "fraud_probability.png"
+    fig.savefig(graph_path)
+    doc.add_picture(graph_path)
+    
+    # Save and add key features contributing to fraud graph
+    fig, ax = plt.subplots(figsize=(6, 4))
+    sns.barplot(
+        x=list(st.session_state.last_fraud_features.values()),
+        y=list(st.session_state.last_fraud_features.keys()),
+        ax=ax,
+        palette="coolwarm"
+    )
+    ax.set_xlabel("Importance Score")
+    graph_path = "feature_importance.png"
+    fig.savefig(graph_path)
+    doc.add_picture(graph_path)
+    
     doc.add_heading("Suggested Actions", level=2)
     doc.add_paragraph("1. Verify Cardholder Identity")
     doc.add_paragraph("2. Alert Banking Authorities")
@@ -58,7 +80,6 @@ def generate_report():
     doc.add_heading("Explainable AI (XAI) in Fraud Detection", level=2)
     doc.add_paragraph("Explainable AI (XAI) plays a crucial role in understanding and interpreting fraud detection results...")
     
-    # Save the report as a buffer
     buffer = BytesIO()
     doc.save(buffer)
     buffer.seek(0)
@@ -86,27 +107,37 @@ def main():
     ProductCD = st.sidebar.selectbox("📦 Product Code", [0, 1, 2, 3, 4])
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
 
-    current_inputs = {
-        "TransactionAmt": TransactionAmt, "card1": card1, "card2": card2,
-        "card4": card4, "card6": card6, "addr1": addr1, "addr2": addr2,
-        "P_emaildomain": P_emaildomain, "ProductCD": ProductCD, "DeviceType": DeviceType
-    }
-
-    st.markdown("### 📝 Transaction Summary")
-    st.write(f"💵 **Transaction Amount:** ${TransactionAmt:.2f}")
-    st.write(f"💳 **Card1:** {card1} | **Card2:** {card2}")
-
     if st.button("🔎 Predict Fraud"):
-        if current_inputs == st.session_state.last_inputs:
-            st.warning("⚠️ Please enter new values before predicting!")
-        else:
-            final_output = generate_random_probability(ProductCD)
-            st.session_state.transaction_history.append(final_output)
-            st.session_state.last_fraud_features = get_random_feature_importance()
-            st.session_state.last_inputs = current_inputs.copy()
-            st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
+        final_output = generate_random_probability(ProductCD)
+        st.session_state.transaction_history.append(final_output)
+        st.session_state.last_fraud_features = get_random_feature_importance()
+        st.session_state.last_inputs = {
+            "TransactionAmt": TransactionAmt, "card1": card1, "card2": card2,
+            "card4": card4, "card6": card6, "addr1": addr1, "addr2": addr2,
+            "P_emaildomain": P_emaildomain, "ProductCD": ProductCD, "DeviceType": DeviceType
+        }
+        st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
     
     if len(st.session_state.transaction_history) > 0:
+        st.header("📊 Fraud Analysis Report")
+        st.subheader("📌 Fraud Probability Distribution")
+        fig, ax = plt.subplots(figsize=(8, 4))
+        sns.histplot(st.session_state.transaction_history, bins=10, kde=True, color="blue", ax=ax)
+        ax.set_xlabel("Fraud Probability (%)")
+        ax.set_ylabel("Count")
+        st.pyplot(fig)
+        
+        st.subheader("🔑 Key Features Contributing to Fraud")
+        fig, ax = plt.subplots(figsize=(6, 4))
+        sns.barplot(
+            x=list(st.session_state.last_fraud_features.values()),
+            y=list(st.session_state.last_fraud_features.keys()),
+            ax=ax,
+            palette="coolwarm"
+        )
+        ax.set_xlabel("Importance Score")
+        st.pyplot(fig)
+        
         report_buffer = generate_report()
         st.download_button("📥 Download Report", data=report_buffer, file_name="Fraud_Report.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
