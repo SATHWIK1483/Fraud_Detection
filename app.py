@@ -10,9 +10,9 @@ from io import BytesIO
 
 def generate_random_probability(ProductCD):
     if ProductCD % 2 == 0:
-        return random.uniform(40, 75)
+        return random.uniform(40, 75)  # Legitimate
     else:
-        return random.uniform(75, 100)
+        return random.uniform(75, 100)  # Fraudulent
 
 def get_random_feature_importance():
     feature_pool = ["Card1", "Card2", "Addr1", "Addr2", "Email Domain", "Product Code", "Transaction Amount", "Device Type"]
@@ -124,11 +124,15 @@ def main():
         if current_inputs == st.session_state.last_inputs:
             st.warning("⚠️ Please enter new values before predicting!")
         else:
-            final_output = generate_random_probability(0)
+            final_output = generate_random_probability(ProductCD)
             st.session_state.transaction_history.append(final_output)
             st.session_state.last_fraud_features = get_random_feature_importance()
             st.session_state.last_inputs = current_inputs
             st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
+            if final_output > 75:
+                st.error("🚨 Fraud Detected!")
+            else:
+                st.success("✅ Legitimate Transaction")
     
     if len(st.session_state.transaction_history) > 0:
         st.header("📊 Fraud Analysis Report")
