@@ -33,20 +33,32 @@ if "last_inputs" not in st.session_state:
 
 def generate_report():
     doc = Document()
-    doc.add_heading("Fraud Detection Report", level=1)
+    doc.add_heading("🚨 Fraud Detection Report 🚨", level=1)
+    doc.add_paragraph("Report Generated: Automated Fraud Detection System")
+    doc.add_paragraph("---")
     
-    doc.add_heading("Transaction Details", level=2)
+    doc.add_heading("Transaction Summary", level=2)
     for key, value in st.session_state.last_inputs.items():
         doc.add_paragraph(f"{key}: {value}")
     
-    doc.add_heading("Fraud Probability", level=2)
+    doc.add_heading("Fraud Analysis", level=2)
     fraud_prob = st.session_state.transaction_history[-1]
-    doc.add_paragraph(f"Fraud Probability: {fraud_prob:.2f}%")
+    doc.add_paragraph(f"⚠️ Fraud Detected: {'Yes' if fraud_prob > 75 else 'No'}")
+    doc.add_paragraph(f"Risk Score: {fraud_prob:.2f}%")
     
-    doc.add_heading("Key Features Contributing to Fraud", level=2)
+    doc.add_heading("Risk Assessment & Explanation", level=2)
     for feature, score in st.session_state.last_fraud_features.items():
-        doc.add_paragraph(f"{feature}: {score}")
+        doc.add_paragraph(f"- {feature}: {score}")
     
+    doc.add_heading("Suggested Actions", level=2)
+    doc.add_paragraph("1. Verify Cardholder Identity")
+    doc.add_paragraph("2. Alert Banking Authorities")
+    doc.add_paragraph("3. Block or Flag the Transaction")
+    
+    doc.add_heading("Explainable AI (XAI) in Fraud Detection", level=2)
+    doc.add_paragraph("Explainable AI (XAI) plays a crucial role in understanding and interpreting fraud detection results...")
+    
+    # Save the report as a buffer
     buffer = BytesIO()
     doc.save(buffer)
     buffer.seek(0)
@@ -95,26 +107,6 @@ def main():
             st.subheader(f'🔢 Fraud Probability: {final_output:.2f}%')
     
     if len(st.session_state.transaction_history) > 0:
-        st.markdown("---")
-        st.header("📊 Fraud Analysis Report")
-        st.subheader("📌 Fraud Probability Distribution")
-        fig, ax = plt.subplots(figsize=(8, 4))
-        sns.histplot(st.session_state.transaction_history, bins=10, kde=True, color="blue", ax=ax)
-        ax.set_xlabel("Fraud Probability (%)")
-        ax.set_ylabel("Count")
-        st.pyplot(fig)
-        
-        st.subheader("🔑 Key Features Contributing to Fraud")
-        fig, ax = plt.subplots(figsize=(6, 4))
-        sns.barplot(
-            x=list(st.session_state.last_fraud_features.values()),
-            y=list(st.session_state.last_fraud_features.keys()),
-            ax=ax,
-            palette="coolwarm"
-        )
-        ax.set_xlabel("Importance Score")
-        st.pyplot(fig)
-        
         report_buffer = generate_report()
         st.download_button("📥 Download Report", data=report_buffer, file_name="Fraud_Report.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
