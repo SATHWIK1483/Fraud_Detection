@@ -50,13 +50,32 @@ def generate_report():
     for feature, score in st.session_state.last_fraud_features.items():
         doc.add_paragraph(f"- {feature}: {score}")
     
+    # Save and add fraud probability distribution graph
+    fig, ax = plt.subplots(figsize=(8, 4))
+    sns.histplot(st.session_state.transaction_history, bins=10, kde=True, color="blue", ax=ax)
+    ax.set_xlabel("Fraud Probability (%)")
+    ax.set_ylabel("Count")
+    graph_path = "fraud_probability.png"
+    fig.savefig(graph_path)
+    doc.add_picture(graph_path)
+    
+    # Save and add key features contributing to fraud graph
+    fig, ax = plt.subplots(figsize=(6, 4))
+    sns.barplot(
+        x=list(st.session_state.last_fraud_features.values()),
+        y=list(st.session_state.last_fraud_features.keys()),
+        ax=ax,
+        palette="coolwarm"
+    )
+    ax.set_xlabel("Importance Score")
+    graph_path = "feature_importance.png"
+    fig.savefig(graph_path)
+    doc.add_picture(graph_path)
+    
     doc.add_heading("Suggested Actions", level=2)
     doc.add_paragraph("1. Verify Cardholder Identity")
     doc.add_paragraph("2. Alert Banking Authorities")
     doc.add_paragraph("3. Block or Flag the Transaction")
-    
-    doc.add_heading("Explainable AI (XAI) in Fraud Detection", level=2)
-    doc.add_paragraph("Explainable AI (XAI) plays a crucial role in understanding and interpreting fraud detection results...")
     
     buffer = BytesIO()
     doc.save(buffer)
