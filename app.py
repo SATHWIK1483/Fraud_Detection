@@ -92,6 +92,13 @@ def main():
     ProductCD = st.sidebar.selectbox("📦 Product Code", [0, 1, 2, 3, 4])
     DeviceType = st.sidebar.radio("📱 Device Type", [1, 2])
 
+    # Fraud Probability Graph
+    fig, ax = plt.subplots()
+    fraud_probs = [generate_random_probability(i) for i in range(5)]
+    sns.barplot(x=[f"Prod {i}" for i in range(5)], y=fraud_probs, ax=ax, palette="coolwarm")
+    ax.set_title("Fraud Probability Distribution")
+    st.pyplot(fig)
+    
     if st.button("📥 Download Report"):
         report_text = generate_report_text()
         report_bytes = io.BytesIO()
